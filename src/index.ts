@@ -3,7 +3,7 @@
  * Breadcrumb-style path bar implementation in TypeScript.
  * Supports keyboard navigation, integrated menus, and seamless menu traversal.
  *
- * @version 1.0.0
+ * @version 1.0.1
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -27,6 +27,7 @@ export interface PathBarOptions {
   readonly animation?: {
     readonly duration?: number;
   };
+  readonly delay?: number;
   readonly popover?: PathBarPopoverOptions;
   readonly selector?: {
     readonly item?: string;
@@ -68,6 +69,7 @@ export default class PathBar {
   #rootElement!: HTMLElement;
   #defaults = {
     animation: { duration: 300 },
+    delay: 200,
     popover: {
       arrow: true,
       middleware: [flip(), offset(), shift()],
@@ -130,11 +132,12 @@ export default class PathBar {
       return;
     }
 
-    this.#linkElements = [
-      ...this.#listElement.querySelectorAll<HTMLElement>(
-        `${selector.list} > * > a`,
-      ),
-    ];
+    this.#linkElements = [];
+
+    this.#itemElements.forEach((item) => {
+      const link = item.querySelector('a');
+      link && this.#linkElements.push(link);
+    });
 
     if (!this.#linkElements.length) {
       console.warn('Missing <a> elements');
@@ -182,20 +185,25 @@ export default class PathBar {
 
     this.#linkElements.forEach((link) => {
       link.addEventListener('keydown', this.#onKeyDown, { signal });
-      const menuRoot = link.nextElementSibling;
+      const root = link.closest(this.#settings.selector.item);
 
-      if (!(menuRoot instanceof HTMLElement)) {
+      if (!(root instanceof HTMLElement)) {
         return;
       }
 
-      const { animation, popover, selector } = this.#settings;
-      const menuInstance = new Menu(
-        menuRoot,
-        { animation, popover: { menu: popover }, selector: selector.menu },
+      const { animation, delay, popover, selector } = this.#settings;
+
+      if (!root.querySelector(selector.menu.trigger)) {
+        return;
+      }
+
+      const menu = new Menu(
+        root,
+        { animation, delay, popover: { menu: popover }, selector: selector.menu },
         { externalTrigger: link, isMenubar: true },
       );
-      this.#bindings.set(link, createBinding(link, menuInstance));
-      this.#menus.push(menuInstance);
+      this.#bindings.set(link, createBinding(link, menu));
+      this.#menus.push(menu);
     });
 
     this.#cleanupRovingTabIndex = createRovingTabIndex(this.#listElement, {

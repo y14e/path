@@ -10,16 +10,16 @@ npm i @y14e/path-bar
 
 ```ts
 // npm
-import PathBar from '@y14e/path-bar@1.0.0';
+import PathBar from '@y14e/path-bar@1.0.1';
 // with middleware
-import PathBar, { flip, offset, shift } from '@y14e/path-bar@1.0.0';
+import PathBar, { flip, offset, shift } from '@y14e/path-bar@1.0.1';
 
 // CDNs
-import PathBar from 'https://esm.sh/@y14e/path-bar@1.0.0';
+import PathBar from 'https://esm.sh/@y14e/path-bar@1.0.1';
 // or
-import PathBar from 'https://cdn.jsdelivr.net/npm/@y14e/path-bar@1.0.0/+esm';
+import PathBar from 'https://cdn.jsdelivr.net/npm/@y14e/path-bar@1.0.1/+esm';
 // or
-import PathBar from 'https://esm.unpkg.com/@y14e/path-bar@1.0.0';
+import PathBar from 'https://esm.unpkg.com/@y14e/path-bar@1.0.1';
 ```
 
 ## Usage
