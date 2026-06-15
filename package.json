@@ -26,8 +26,9 @@
   "keywords": [
     "a11y",
     "accessibility",
-    "pathbar",
     "component",
+    "navigation",
+    "path",
     "typescript",
     "utility"
   ],
