@@ -3,7 +3,7 @@
  * Breadcrumb-style path bar implementation in TypeScript.
  * Supports keyboard navigation, integrated menus, and seamless menu traversal.
  *
- * @version 1.1.1
+ * @version 1.1.2
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -15,6 +15,7 @@
 // -----------------------------------------------------------------------------
 
 import type { Middleware, Placement } from '@floating-ui/dom';
+import type { MenuCloseReason } from '@y14e/menu';
 import Menu, { flip, offset, shift } from '@y14e/menu';
 import { createRovingTabIndex } from '@y14e/roving-tabindex';
 
@@ -202,8 +203,8 @@ export default class Path {
           onBlurWithin: (menu, next) => {
             this.#onFocusOut(menu, next);
           },
-          onCloseByRequest: () => {
-            this.#onClose();
+          onClose: (_, reason) => {
+            this.#onClose(reason);
           },
           onFocusWithin: (menu) => {
             this.#onFocusIn(menu);
@@ -227,8 +228,10 @@ export default class Path {
     this.#rootElement.setAttribute('data-path-initialized', '');
   }
 
-  #onClose = (): void => {
-    this.#autoOpen = false;
+  #onClose = (reason: MenuCloseReason): void => {
+    if (reason) {
+      this.#autoOpen = false;
+    }
   };
 
   #onFocusIn = (menu: Menu): void => {

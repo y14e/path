@@ -10,16 +10,16 @@ npm i @y14e/path
 
 ```ts
 // npm
-import Path from '@y14e/path@1.1.1';
+import Path from '@y14e/path@1.1.2';
 // with middleware
-import Path, { flip, offset, shift } from '@y14e/path@1.1.1';
+import Path, { flip, offset, shift } from '@y14e/path@1.1.2';
 
 // CDNs
-import Path from 'https://esm.sh/@y14e/path@1.1.1';
+import Path from 'https://esm.sh/@y14e/path@1.1.2';
 // or
-import Path from 'https://cdn.jsdelivr.net/npm/@y14e/path@1.1.1/+esm';
+import Path from 'https://cdn.jsdelivr.net/npm/@y14e/path@1.1.2/+esm';
 // or
-import Path from 'https://esm.unpkg.com/@y14e/path@1.1.1';
+import Path from 'https://esm.unpkg.com/@y14e/path@1.1.2';
 ```
 
 ## Usage
