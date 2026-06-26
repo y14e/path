@@ -3,7 +3,7 @@
  * Breadcrumb-style path bar implementation in TypeScript.
  * Supports keyboard navigation, integrated menus, and seamless menu traversal.
  *
- * @version 1.0.4
+ * @version 1.1.0
  * @author Yusuke Kamiyamane
  * @license MIT
  * @copyright Copyright (c) Yusuke Kamiyamane
@@ -17,7 +17,6 @@
 import type { Middleware, Placement } from '@floating-ui/dom';
 import Menu, { flip, offset, shift } from '@y14e/menu';
 import { createRovingTabIndex } from '@y14e/roving-tabindex';
-import { getNextFocusable } from 'power-focusable';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -178,13 +177,11 @@ export default class Path {
       return;
     }
 
-    this.#listElement.addEventListener('focusin', this.#onFocusIn, { signal });
-    this.#listElement.addEventListener('focusout', this.#onFocusOut, {
-      signal,
+    this.#itemElements.forEach((item) => {
+      item.addEventListener('pointerenter', this.#onPointerEnter, { signal });
     });
 
     this.#linkElements.forEach((link) => {
-      link.addEventListener('keydown', this.#onKeyDown, { signal });
       const root = link.closest(this.#settings.selector.item);
 
       if (!(root instanceof HTMLElement)) {
@@ -202,6 +199,15 @@ export default class Path {
         {
           animation,
           delay,
+          onBlurWithin: (menu, next) => {
+            this.#onFocusOut(menu, next);
+          },
+          onCloseByRequest: () => {
+            this.#onClose();
+          },
+          onFocusWithin: (menu) => {
+            this.#onFocusIn(menu);
+          },
           popover: { menu: popover },
           selector: selector.menu,
         },
@@ -221,7 +227,27 @@ export default class Path {
     this.#rootElement.setAttribute('data-path-initialized', '');
   }
 
-  #onFocusIn = (event: FocusEvent): void => {
+  #onClose = (): void => {
+    this.#autoOpen = false;
+  };
+
+  #onFocusIn = (menu: Menu): void => {
+    if (this.#autoOpen) {
+      menu.open();
+    }
+  };
+
+  #onFocusOut = (menu: Menu, next: HTMLElement | null): void => {
+    if (menu.isOpen()) {
+      this.#autoOpen = true;
+    }
+
+    if (!this.#listElement?.contains(next)) {
+      this.#autoOpen = false;
+    }
+  };
+
+  #onPointerEnter = (event: PointerEvent): void => {
     if (!this.#autoOpen && !this.#hasOpenMenu()) {
       return;
     }
@@ -233,8 +259,8 @@ export default class Path {
     }
 
     const link =
-      this.#linkElements.indexOf(target) >= 0
-        ? target
+      this.#itemElements.indexOf(target) >= 0
+        ? target.querySelector('a')
         : target.closest(this.#settings.selector.item)?.querySelector('a');
 
     if (!link) {
@@ -245,57 +271,10 @@ export default class Path {
 
     if (menu) {
       this.#autoOpen = true;
-      menu.open();
+      !menu.isOpen() && menu.open();
       return;
-    }
-
-    this.#closeAllMenus();
-  };
-
-  #onFocusOut = (event: FocusEvent): void => {
-    const target = event.relatedTarget;
-
-    if (!(target instanceof HTMLElement)) {
-      return;
-    }
-
-    if (!this.#rootElement.contains(target) && !this.#hasOpenMenu()) {
-      this.#autoOpen = false;
     }
   };
-
-  #onKeyDown = (event: KeyboardEvent): void => {
-    const { key, altKey, ctrlKey, metaKey, shiftKey } = event;
-
-    if (altKey || ctrlKey || metaKey || shiftKey) {
-      return;
-    }
-
-    if (!['Tab', 'Escape'].includes(key)) {
-      return;
-    }
-
-    switch (key) {
-      case 'Tab': {
-        event.preventDefault();
-        this.#closeAllMenus();
-        const next = getNextFocusable();
-        next instanceof HTMLElement && next.focus();
-        break;
-      }
-      case 'Escape':
-        this.#autoOpen = false;
-        break;
-    }
-  };
-
-  #closeAllMenus(): void {
-    this.#menus
-      .filter((menu) => menu.isOpen())
-      .forEach((menu) => {
-        menu.close();
-      });
-  }
 
   #hasOpenMenu(): boolean {
     return this.#menus.some((menu) => menu.isOpen());
